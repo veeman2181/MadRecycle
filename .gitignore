@@ -1,0 +1,25 @@
+*.iml
+.gradle/
+.kotlin/
+/local.properties
+.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+app/build/
+app/schemas/
+
+# Python training tooling (tools/material_classifier) — venv and raw datasets are local-only
+tools/material_classifier/venv/
+tools/material_classifier/dataset-resized/
+tools/material_classifier/dataset-resized.zip
+tools/material_classifier/kaggle-waste/
+tools/material_classifier/recyclable-and-household-waste-classification.zip
+tools/material_classifier/*.log
+
+# Kaggle API token — never commit credentials
+.kaggle/
+kaggle.json

@@ -1,0 +1,83 @@
+[
+  {
+    "barcode": "041303001505",
+    "itemName": "Plastic Milk Jug",
+    "materialType": "PLASTIC_JUG",
+    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": true
+  },
+  {
+    "barcode": "999999000001",
+    "itemName": "Cardboard Shipping Box",
+    "materialType": "CARDBOARD",
+    "rulesText": "Madison Rule: Flatten completely before discarding.",
+    "minDimensionInches": null,
+    "requiresFlatten": true,
+    "requires3D": false
+  },
+  {
+    "barcode": "041220002709",
+    "itemName": "Metal Soup Can",
+    "materialType": "METAL_CAN",
+    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": true
+  },
+  {
+    "barcode": "030000317008",
+    "itemName": "Oat Milk Carton",
+    "materialType": "DRINK_CARTON",
+    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": true
+  },
+  {
+    "barcode": "012345678905",
+    "itemName": "Small Plastic Cup",
+    "materialType": "OTHER",
+    "rulesText": "Too Small for Pellitteri Systems. Discard in Trash.",
+    "minDimensionInches": 3.0,
+    "requiresFlatten": false,
+    "requires3D": false
+  },
+  {
+    "barcode": "",
+    "itemName": "Cardboard (fallback)",
+    "materialType": "CARDBOARD",
+    "rulesText": "Madison Rule: Flatten completely before discarding.",
+    "minDimensionInches": null,
+    "requiresFlatten": true,
+    "requires3D": false
+  },
+  {
+    "barcode": "",
+    "itemName": "Plastic Jug/Bottle (fallback)",
+    "materialType": "PLASTIC_JUG",
+    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": true
+  },
+  {
+    "barcode": "",
+    "itemName": "Metal Can (fallback)",
+    "materialType": "METAL_CAN",
+    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": true
+  },
+  {
+    "barcode": "",
+    "itemName": "Drink Carton (fallback)",
+    "materialType": "DRINK_CARTON",
+    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": true
+  }
+]

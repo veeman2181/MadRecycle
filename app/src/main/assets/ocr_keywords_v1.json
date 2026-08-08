@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "keywords": [
+    { "keyword": "OAT MILK", "materialType": "DRINK_CARTON" },
+    { "keyword": "ALMOND MILK", "materialType": "DRINK_CARTON" },
+    { "keyword": "SOY MILK", "materialType": "DRINK_CARTON" },
+    { "keyword": "HALF & HALF", "materialType": "DRINK_CARTON" },
+    { "keyword": "CHOBANI", "materialType": "OTHER" },
+    { "keyword": "YOGURT", "materialType": "OTHER" },
+    { "keyword": "MILK", "materialType": "PLASTIC_JUG" },
+    { "keyword": "DETERGENT", "materialType": "PLASTIC_JUG" },
+    { "keyword": "BLEACH", "materialType": "PLASTIC_JUG" },
+    { "keyword": "SOUP", "materialType": "METAL_CAN" },
+    { "keyword": "BEANS", "materialType": "METAL_CAN" },
+    { "keyword": "VEGETABLES", "materialType": "METAL_CAN" },
+    { "keyword": "AMAZON", "materialType": "CARDBOARD" },
+    { "keyword": "FRAGILE", "materialType": "CARDBOARD" },
+    { "keyword": "THIS SIDE UP", "materialType": "CARDBOARD" }
+  ]
+}
