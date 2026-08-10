@@ -46,6 +46,9 @@ jobs:
           esac
           echo "$PAYLOAD" | base64 -d | jq .
 
+      - name: Verify role ARN secret (temporary, hash only, never the value)
+        run: echo -n "${{ secrets.VISION_PROXY_DEPLOY_ROLE_ARN }}" | sha256sum
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
