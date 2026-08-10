@@ -65,11 +65,14 @@ jobs:
         run: |
           IDTOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          echo "token length: ${#IDTOKEN}"
+          echo "aws cli version: $(aws --version)"
           aws sts assume-role-with-web-identity \
             --role-arn "arn:aws:iam::850799964167:role/ecomadison-vision-proxy-deploy-oidctest" \
             --role-session-name debug-session \
             --web-identity-token "$IDTOKEN" \
-            --region us-east-1 2>&1 || true
+            --region us-east-1 \
+            --debug 2>&1 | grep -Ei "body|x-amzn|status_code|Response headers|Response body|<Error>|<Message>|<Code>" || true
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
