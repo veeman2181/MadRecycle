@@ -122,6 +122,7 @@ dependencies {
 
     implementation(libs.okhttp)
     implementation(libs.retrofit)
+    implementation(libs.okhttp.logging.interceptor)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

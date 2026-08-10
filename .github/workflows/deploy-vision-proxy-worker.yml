@@ -1,0 +1,20 @@
+name: Deploy vision proxy (Cloudflare Worker)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/vision_proxy_worker/**"
+      - ".github/workflows/deploy-vision-proxy-worker.yml"
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: backend/vision_proxy_worker

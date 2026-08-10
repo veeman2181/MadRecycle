@@ -29,11 +29,7 @@ tools/material_classifier/scan_debug_pulled/
 .kaggle/
 kaggle.json
 
-# Lambda deploy build artifacts (backend/vision_proxy) -- rebuilt locally by the README's
-# setup steps or by CI; the pip-installed package/ dir in particular pulls in the full
-# anthropic/pydantic dependency tree plus compiled .pyc/.pyd files, not source.
-backend/vision_proxy/package/
-backend/vision_proxy/function.zip
-backend/vision_proxy/trust-policy.json
-backend/vision_proxy/lambda-trust-policy.json
-backend/vision_proxy/lambda-deploy-policy.json
+# Cloudflare Worker (backend/vision_proxy_worker) -- npm deps and wrangler's local
+# account/session cache (holds account id, not something to check in).
+backend/vision_proxy_worker/node_modules/
+backend/vision_proxy_worker/.wrangler/

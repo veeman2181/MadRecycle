@@ -1,0 +1,8 @@
+name = "ecomadison-vision-proxy"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+
+# Secrets (never stored here -- set via `wrangler secret put <NAME>` or the
+# GitHub Actions deploy workflow's use of the same):
+#   PROXY_SHARED_SECRET  -- must match cloudVisionProxySecret in the app's local.properties
+#   ANTHROPIC_API_KEY    -- the real Anthropic key; only this Worker ever sees it

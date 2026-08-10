@@ -14,7 +14,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -22,6 +21,7 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.http.Body
@@ -31,8 +31,9 @@ import retrofit2.http.POST
 /**
  * On-device-free CV material classifier (§5.5 Tier 3.5, now the primary CV resolver --
  * see ScanPipelineCoordinator for why the on-device classifier is the fallback rather
- * than the other way around). Calls the vision proxy Lambda (backend/vision_proxy),
- * which holds the real Anthropic API key server-side; this class never sees it.
+ * than the other way around). Calls the vision proxy Cloudflare Worker
+ * (backend/vision_proxy_worker), which holds the real Anthropic API key server-side;
+ * this class never sees it.
  *
  * Returns null (falls through to the on-device fallback) on any failure: no proxy URL
  * configured, no network, timeout, a non-2xx response, or a malformed body. The caller
@@ -56,6 +57,7 @@ class CloudVisionMaterialTierImpl @Inject constructor() : CloudVisionMaterialTie
             val response = json.decodeFromString<ClassifyResponse>(responseBody.string())
             val materialType = MaterialType.valueOf(response.materialType)
             val productCategory = response.productCategory.takeIf { it != "NONE" }?.let(ProductCategory::valueOf)
+            Log.d(TAG, "Cloud vision returned $response")
             MaterialClassification(materialType, response.confidence, productCategory)
         } catch (e: IOException) {
             Log.w(TAG, "Cloud vision request failed", e)
@@ -77,6 +79,7 @@ class CloudVisionMaterialTierImpl @Inject constructor() : CloudVisionMaterialTie
         val okHttpClient = OkHttpClient.Builder()
             .connectTimeout(CONNECT_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .readTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            .apply { if (BuildConfig.DEBUG) addInterceptor(buildLoggingInterceptor()) }
             .build()
 
         // No Retrofit converter factory needed -- RequestBody/ResponseBody are natively
@@ -88,6 +91,13 @@ class CloudVisionMaterialTierImpl @Inject constructor() : CloudVisionMaterialTie
             .build()
             .create(VisionProxyApi::class.java)
     }
+
+    private fun buildLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor { message -> Log.d(TAG, message) }
+            .apply {
+                level = HttpLoggingInterceptor.Level.BODY
+                redactHeader("X-Proxy-Secret")
+            }
 
     private fun Bitmap.toJpegBase64(): String {
         val scaled = downscaleIfNeeded(this)
