@@ -219,8 +219,36 @@ aws iam create-open-id-connect-provider `
   --thumbprint-list 6938fd4d98bab03faadb97b34396831e3780aea1
 ```
 
-**2. Create a deploy role trusted only by this repo's `main` branch.** Replace
+**2. Create a deploy role trusted only by this exact workflow file on `main`.** Replace
 `<ACCOUNT_ID>` with your AWS account ID throughout.
+
+This conditions on `job_workflow_ref` rather than `sub`. GitHub's `sub` claim on some
+accounts embeds immutable numeric owner/repo IDs (e.g.
+`repo:owner@123/repo@456:ref:refs/heads/main` instead of the plain
+`repo:owner/repo:ref:refs/heads/main` shown in most docs and examples elsewhere), which
+silently breaks a `sub`-based trust condition with no indication why -- AWS returns a
+generic "Not authorized to perform sts:AssumeRoleWithWebIdentity" that looks identical to
+every other trust misconfiguration. `job_workflow_ref` doesn't have this problem and is
+also more precise (it scopes to this one workflow file, not just the repo+branch). AWS's
+IAM trust-policy validator requires the condition to reference `sub` or
+`job_workflow_ref` specifically -- it rejects a trust policy scoped only on `repository`/
+`ref`, even though those claims are also present on the token and arguably more readable.
+
+If you ever do need to debug this token's actual claims for a different repo/setup, add a
+step to the workflow that requests and decodes it before assuming any role:
+```yaml
+- name: Debug OIDC token claims
+  run: |
+    IDTOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+      "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+    PAYLOAD=$(echo -n "$IDTOKEN" | cut -d '.' -f2 | tr '_-' '/+')
+    case $((${#PAYLOAD} % 4)) in
+      2) PAYLOAD="${PAYLOAD}==" ;;
+      3) PAYLOAD="${PAYLOAD}=" ;;
+    esac
+    echo "$PAYLOAD" | base64 -d | jq .
+```
+(Needs `permissions: id-token: write` on the job, same as the real deploy step.)
 
 ```powershell
 @'
@@ -234,8 +262,10 @@ aws iam create-open-id-connect-provider `
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
-        "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
-        "StringLike": { "token.actions.githubusercontent.com:sub": "repo:veeman2181/MadRecycle:ref:refs/heads/main" }
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:job_workflow_ref": "veeman2181/MadRecycle/.github/workflows/deploy-vision-proxy.yml@refs/heads/main"
+        }
       }
     }
   ]
