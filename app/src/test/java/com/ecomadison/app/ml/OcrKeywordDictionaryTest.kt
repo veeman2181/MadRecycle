@@ -28,4 +28,16 @@ class OcrKeywordDictionaryTest {
     fun `returns null when no keyword matches`() = runTest {
         assertThat(dictionary.match("SPARKLING WATER")).isNull()
     }
+
+    @Test
+    fun `shipping label text on a heavily-labeled box resolves to cardboard`() = runTest {
+        assertThat(dictionary.match("UPS GROUND TRACKING # 1Z046 PACKLIST ENCLOSED")).isEqualTo(MaterialType.CARDBOARD)
+    }
+
+    @Test
+    fun `bare carrier abbreviation is not a keyword, to avoid matching unrelated product text`() = runTest {
+        // "UPS" alone would substring-match inside "CUPS", "GROUPS", etc. — only the full
+        // "UPS GROUND" phrase is safe enough to use as a signal.
+        assertThat(dictionary.match("PACK OF 50 PAPER CUPS")).isNull()
+    }
 }

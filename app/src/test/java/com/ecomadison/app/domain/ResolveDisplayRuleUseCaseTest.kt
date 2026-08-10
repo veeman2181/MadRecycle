@@ -17,7 +17,8 @@ class ResolveDisplayRuleUseCaseTest {
         materialType: MaterialType = MaterialType.OTHER,
         minDimensionInches: Float? = null,
         requiresFlatten: Boolean = false,
-        requires3D: Boolean = false
+        requires3D: Boolean = false,
+        isRecyclableAsIs: Boolean = false
     ) = RecyclableItem(
         barcode = "000000000000",
         itemName = "Test Item",
@@ -26,6 +27,7 @@ class ResolveDisplayRuleUseCaseTest {
         minDimensionInches = minDimensionInches,
         requiresFlatten = requiresFlatten,
         requires3D = requires3D,
+        isRecyclableAsIs = isRecyclableAsIs,
         lastUpdatedTimestamp = 0L
     )
 
@@ -58,6 +60,17 @@ class ResolveDisplayRuleUseCaseTest {
         )
 
         assertThat(result).isEqualTo(RuleMessage.Flatten)
+    }
+
+    @Test
+    fun `glass or paper marked recyclable as-is shows that message, not the generic fallback`() {
+        listOf(MaterialType.GLASS, MaterialType.PAPER).forEach { material ->
+            val result = resolveDisplayRule(
+                item = item(materialType = material, isRecyclableAsIs = true),
+                dimensions = null
+            )
+            assertThat(result).isEqualTo(RuleMessage.RecyclableAsIs)
+        }
     }
 
     @Test

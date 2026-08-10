@@ -1,7 +1,6 @@
 package com.ecomadison.app.ml
 
 import androidx.test.core.app.ApplicationProvider
-import com.ecomadison.app.domain.model.MaterialType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,7 +19,7 @@ class MaterialClassifierTierImplTest {
     private val context = ApplicationProvider.getApplicationContext<android.content.Context>()
 
     @Test
-    fun `labels asset is non-empty and every line is a valid MaterialType`() {
+    fun `labels asset is non-empty and every line parses as a MaterialType or ProductCategory`() {
         val labels = context.assets.open("material_classifier_labels.txt")
             .bufferedReader()
             .readLines()
@@ -28,8 +27,8 @@ class MaterialClassifierTierImplTest {
 
         assertThat(labels).isNotEmpty()
         labels.forEach { label ->
-            // Throws IllegalArgumentException (failing the test) if the asset drifts from the enum.
-            MaterialType.valueOf(label.trim())
+            // Throws IllegalArgumentException (failing the test) if the asset drifts from both enums.
+            parseClassifierLabel(label)
         }
     }
 

@@ -15,7 +15,8 @@ private data class SeedRecyclableDto(
     val rulesText: String,
     val minDimensionInches: Float? = null,
     val requiresFlatten: Boolean,
-    val requires3D: Boolean
+    val requires3D: Boolean,
+    val isRecyclableAsIs: Boolean = false
 )
 
 /**
@@ -41,6 +42,7 @@ class SeedDataLoader(
                 minDimensionInches = dto.minDimensionInches,
                 requiresFlatten = dto.requiresFlatten,
                 requires3D = dto.requires3D,
+                isRecyclableAsIs = dto.isRecyclableAsIs,
                 lastUpdatedTimestamp = now
             )
         }

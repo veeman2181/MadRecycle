@@ -58,6 +58,39 @@ class RecyclableItemDaoTest {
         assertThat(result?.barcode).isEqualTo("")
     }
 
+    /**
+     * Regression test: every seeded fallback row shares `barcode = ""` (one per MaterialType).
+     * With `barcode` as the sole @PrimaryKey and OnConflictStrategy.REPLACE, inserting all of
+     * them in one batch silently dropped every fallback row except the last one in the list —
+     * only whichever material happened to be seeded last could ever resolve via Tiers 2-4.
+     */
+    @Test
+    fun `multiple fallback rows for different materials all survive the same insert batch`() = runTest {
+        val dao = database.recyclableItemDao()
+        dao.insertAll(
+            listOf(
+                fallbackRow(MaterialType.CARDBOARD),
+                fallbackRow(MaterialType.PLASTIC_JUG),
+                fallbackRow(MaterialType.METAL_CAN),
+                fallbackRow(MaterialType.DRINK_CARTON),
+                fallbackRow(MaterialType.GLASS),
+                fallbackRow(MaterialType.PAPER)
+            )
+        )
+
+        listOf(
+            MaterialType.CARDBOARD,
+            MaterialType.PLASTIC_JUG,
+            MaterialType.METAL_CAN,
+            MaterialType.DRINK_CARTON,
+            MaterialType.GLASS,
+            MaterialType.PAPER
+        ).forEach { materialType ->
+            val result = dao.observeFallbackForMaterial(materialType).first()
+            assertThat(result?.materialType).isEqualTo(materialType)
+        }
+    }
+
     private fun jug(barcode: String) = RecyclableItemEntity(
         barcode = barcode,
         itemName = "Plastic Jug",
@@ -66,6 +99,19 @@ class RecyclableItemDaoTest {
         minDimensionInches = null,
         requiresFlatten = false,
         requires3D = true,
+        isRecyclableAsIs = false,
+        lastUpdatedTimestamp = System.currentTimeMillis()
+    )
+
+    private fun fallbackRow(materialType: MaterialType) = RecyclableItemEntity(
+        barcode = "",
+        itemName = "$materialType (fallback)",
+        materialType = materialType,
+        rulesText = "",
+        minDimensionInches = null,
+        requiresFlatten = false,
+        requires3D = false,
+        isRecyclableAsIs = false,
         lastUpdatedTimestamp = System.currentTimeMillis()
     )
 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -70,16 +71,46 @@ fun ScannerScreen(viewModel: ScannerViewModel = hiltViewModel()) {
         uiState.ruleMessage?.let { rule ->
             RuleResultOverlay(
                 rule = rule,
-                onScanAgain = { viewModel.onIntent(ScannerIntent.RuleDismissed) }
+                detail = uiState.ruleDetail,
+                productLabel = uiState.productLabel,
+                onScanAgain = { viewModel.onIntent(ScannerIntent.RuleDismissed) },
+                onCorrectionRequested = { viewModel.onIntent(ScannerIntent.CorrectionRequested) }
             )
+        }
+
+        if (uiState.isAnalyzing) {
+            AnalyzingOverlay()
         }
 
         if (uiState.isAwaitingManualSelection) {
             ManualFallbackOverlay(
                 onMaterialSelected = { material ->
                     viewModel.onIntent(ScannerIntent.ManualMaterialSelected(material))
-                }
+                },
+                onDismiss = { viewModel.onIntent(ScannerIntent.RuleDismissed) }
             )
+        }
+    }
+}
+
+/** Shown for ScanTierResult.Analyzing -- the resolution attempt (cloud, then on-device fallback) is in flight. */
+@Composable
+private fun AnalyzingOverlay() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(24.dp),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Row(
+                modifier = Modifier.padding(20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(text = "Identifying item…", style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
 }
@@ -104,7 +135,13 @@ private fun CameraPermissionRationale(onRequestPermission: () -> Unit) {
 }
 
 @Composable
-private fun RuleResultOverlay(rule: RuleMessage, onScanAgain: () -> Unit) {
+private fun RuleResultOverlay(
+    rule: RuleMessage,
+    detail: String?,
+    productLabel: String?,
+    onScanAgain: () -> Unit,
+    onCorrectionRequested: () -> Unit
+) {
     Dialog(onDismissRequest = onScanAgain) {
         Surface(
             shape = MaterialTheme.shapes.large,
@@ -116,7 +153,32 @@ private fun RuleResultOverlay(rule: RuleMessage, onScanAgain: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(text = rule.emoji, style = MaterialTheme.typography.headlineMedium)
+                // Hedged phrasing ("Looks like") rather than a flat assertion -- a fine-grained
+                // product guess is meaningfully less reliable than the material-level rule below it.
+                if (!productLabel.isNullOrBlank()) {
+                    Text(
+                        text = "Looks like a $productLabel",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
                 Text(text = rule.text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth())
+                if (!detail.isNullOrBlank()) {
+                    Text(
+                        text = detail,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                if (!productLabel.isNullOrBlank()) {
+                    Button(
+                        onClick = onCorrectionRequested,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                    ) {
+                        Text("Not right? Tap to fix", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
                 Button(onClick = onScanAgain, modifier = Modifier.fillMaxWidth()) {
                     Text("Scan Again")
                 }
@@ -131,12 +193,14 @@ private val MANUAL_OPTIONS = listOf(
     ManualOption("Cardboard", "📦", MaterialType.CARDBOARD),
     ManualOption("Plastic Jug/Bottle", "🥤", MaterialType.PLASTIC_JUG),
     ManualOption("Metal Can", "🥫", MaterialType.METAL_CAN),
-    ManualOption("Drink Carton", "🥛", MaterialType.DRINK_CARTON)
+    ManualOption("Drink Carton", "🥛", MaterialType.DRINK_CARTON),
+    ManualOption("Glass Bottle/Jar", "🍾", MaterialType.GLASS),
+    ManualOption("Paper", "📄", MaterialType.PAPER)
 )
 
-/** Tier 4 (§5.5): shown when Tiers 1-3 all fail or are low-confidence. Blocks on user input. */
+/** Tier 4 (§5.5): shown when Tiers 1-3 all fail or are low-confidence. */
 @Composable
-private fun ManualFallbackOverlay(onMaterialSelected: (MaterialType) -> Unit) {
+private fun ManualFallbackOverlay(onMaterialSelected: (MaterialType) -> Unit, onDismiss: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -170,6 +234,15 @@ private fun ManualFallbackOverlay(onMaterialSelected: (MaterialType) -> Unit) {
                             }
                         }
                     }
+                }
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                ) {
+                    Text("None of these — try scanning again", color = Color.White)
                 }
             }
         }

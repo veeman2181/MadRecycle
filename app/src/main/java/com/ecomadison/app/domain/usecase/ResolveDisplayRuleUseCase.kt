@@ -21,6 +21,7 @@ class ResolveDisplayRuleUseCase @Inject constructor() {
             isTooSmall -> RuleMessage.TooSmall
             item.requires3D -> RuleMessage.Keep3D
             item.requiresFlatten -> RuleMessage.Flatten
+            item.isRecyclableAsIs -> RuleMessage.RecyclableAsIs
             else -> RuleMessage.GenericFallback
         }
     }

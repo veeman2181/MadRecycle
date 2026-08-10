@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "keywords": [
     { "keyword": "OAT MILK", "materialType": "DRINK_CARTON" },
     { "keyword": "ALMOND MILK", "materialType": "DRINK_CARTON" },
@@ -15,6 +15,12 @@
     { "keyword": "VEGETABLES", "materialType": "METAL_CAN" },
     { "keyword": "AMAZON", "materialType": "CARDBOARD" },
     { "keyword": "FRAGILE", "materialType": "CARDBOARD" },
-    { "keyword": "THIS SIDE UP", "materialType": "CARDBOARD" }
+    { "keyword": "THIS SIDE UP", "materialType": "CARDBOARD" },
+    { "keyword": "UPS GROUND", "materialType": "CARDBOARD" },
+    { "keyword": "PRIORITY MAIL", "materialType": "CARDBOARD" },
+    { "keyword": "TRACKING", "materialType": "CARDBOARD" },
+    { "keyword": "PACKLIST", "materialType": "CARDBOARD" },
+    { "keyword": "FEDEX", "materialType": "CARDBOARD" },
+    { "keyword": "USPS", "materialType": "CARDBOARD" }
   ]
 }

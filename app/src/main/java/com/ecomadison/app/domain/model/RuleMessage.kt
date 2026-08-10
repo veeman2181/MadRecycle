@@ -18,6 +18,12 @@ sealed class RuleMessage(val emoji: String, val text: String) {
         text = "Madison Rule: Flatten completely before discarding."
     )
 
+    /** Glass and paper: on Madison's accepted curbside list with no shape prep required. */
+    object RecyclableAsIs : RuleMessage(
+        emoji = "✅",
+        text = "Recyclable as-is — make sure it's clean, empty, and dry."
+    )
+
     /** REQ-4.2.2 negative case: no rule row matched. Never render a blank state. */
     object GenericFallback : RuleMessage(
         emoji = "ℹ️",

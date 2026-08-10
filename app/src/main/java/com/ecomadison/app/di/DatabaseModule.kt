@@ -23,6 +23,10 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): EcoMadisonDatabase =
         Room.databaseBuilder(context, EcoMadisonDatabase::class.java, EcoMadisonDatabase.DATABASE_NAME)
+            // No Phase 1 users/real data yet; madison_recyclables re-seeds itself from assets on
+            // next read (SeedDataLoader.seedIfEmpty), so a destructive migration is simpler and
+            // safer than hand-authoring an ALTER TABLE for every schema tweak at this stage.
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
     @Provides

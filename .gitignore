@@ -19,7 +19,21 @@ tools/material_classifier/dataset-resized.zip
 tools/material_classifier/kaggle-waste/
 tools/material_classifier/recyclable-and-household-waste-classification.zip
 tools/material_classifier/*.log
+# Experiment-only model artifacts (the shipped model lives in app/src/main/assets/ instead)
+tools/material_classifier/granular_experiment/
+# Real on-device debug photos pulled via adb -- diagnostic-only (see ScannerViewModel's
+# saveDebugFrame), and often personal (whatever the camera happened to be pointed at)
+tools/material_classifier/scan_debug_pulled/
 
 # Kaggle API token — never commit credentials
 .kaggle/
 kaggle.json
+
+# Lambda deploy build artifacts (backend/vision_proxy) -- rebuilt locally by the README's
+# setup steps or by CI; the pip-installed package/ dir in particular pulls in the full
+# anthropic/pydantic dependency tree plus compiled .pyc/.pyd files, not source.
+backend/vision_proxy/package/
+backend/vision_proxy/function.zip
+backend/vision_proxy/trust-policy.json
+backend/vision_proxy/lambda-trust-policy.json
+backend/vision_proxy/lambda-deploy-policy.json

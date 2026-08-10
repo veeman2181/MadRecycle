@@ -13,6 +13,7 @@ fun RecyclableItemEntity.toDomain() = RecyclableItem(
     minDimensionInches = minDimensionInches,
     requiresFlatten = requiresFlatten,
     requires3D = requires3D,
+    isRecyclableAsIs = isRecyclableAsIs,
     lastUpdatedTimestamp = lastUpdatedTimestamp
 )
 

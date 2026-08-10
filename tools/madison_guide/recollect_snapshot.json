@@ -1,0 +1,128 @@
+{
+  "source": "https://api.recollect.net/api/areas/CityofMadisonWI/services/1567/pages",
+  "note": "Unofficial widget API behind the city's own recycling guide page. Refresh this snapshot occasionally by re-running this script; do not call this endpoint from the shipped app.",
+  "materials": {
+    "CARDBOARD": {
+      "checked_page_names": [
+        "corrugated_cardboard"
+      ],
+      "matched": [
+        {
+          "page_name": "corrugated_cardboard",
+          "title": "Cardboard",
+          "synonyms": "corrugated cardboard, boxes, cardboard tubes, shipping tubes, poster tubes, paper, old corrugated cardboard, OCC, corrugated fibreboard, fiberboard, electronics, moving, movers, big box, cardbox, carboard, carsboard, moving boxes, excess cardboard, boxes amazon, packing box, iphone boxes, coated paper box, many card board boxes, cardboard boxes, boxes, glossy cardboard, large cartons that tvs came in, large boxes, beer cartons",
+          "special_instructions": "Empty and flatten all cardboard boxes. Have more cardboard than can fit into your cart? You have two choices .",
+          "dropoff_instructions": ""
+        }
+      ],
+      "suggested_rules_text": "Empty and flatten all cardboard boxes. Have more cardboard than can fit into your cart? You have two choices ."
+    },
+    "PLASTIC_JUG": {
+      "checked_page_names": [
+        "plastic_bottle"
+      ],
+      "matched": [
+        {
+          "page_name": "plastic_bottle",
+          "title": "Plastic Bottle",
+          "synonyms": "#1 plastic, water bottle, pop bottle, soda bottle, soap, instant coffee crystal plastic jar, contact solution bottle",
+          "special_instructions": "Plastic caps and lids should be kept on their plastic bottles, jugs, and jars.",
+          "dropoff_instructions": ""
+        }
+      ],
+      "suggested_rules_text": "Plastic caps and lids should be kept on their plastic bottles, jugs, and jars."
+    },
+    "METAL_CAN": {
+      "checked_page_names": [
+        "aluminum_can",
+        "metal_food_cans"
+      ],
+      "matched": [
+        {
+          "page_name": "aluminum_can",
+          "title": "Aluminum Can",
+          "synonyms": "",
+          "special_instructions": "Make sure your cans are clean, empty, and dry before putting them into the recycling cart.",
+          "dropoff_instructions": ""
+        },
+        {
+          "page_name": "metal_food_cans",
+          "title": "Metal Food Cans",
+          "synonyms": "Soup can, tin can, tin can lid, cat food cans",
+          "special_instructions": "",
+          "dropoff_instructions": "Cans must be clean, empty, and dry. With the lids, slip them back into the cans and pinch the top closed just a little bit so the lid can't fall out."
+        }
+      ],
+      "suggested_rules_text": "Make sure your cans are clean, empty, and dry before putting them into the recycling cart."
+    },
+    "DRINK_CARTON": {
+      "checked_page_names": [
+        "milk_carton",
+        "gable_top_carton",
+        "aseptic_carton"
+      ],
+      "matched": [
+        {
+          "page_name": "milk_carton",
+          "title": "Milk Carton",
+          "synonyms": "Paper milk carton, soy milk carton, wax coated milk cartons",
+          "special_instructions": "",
+          "dropoff_instructions": ""
+        },
+        {
+          "page_name": "gable_top_carton",
+          "title": "Gable Top Carton",
+          "synonyms": "milk carton, juice carton, orange juice, polycoat, wax carton, aseptic carton, tetrapak, tetrapak, tetra, coated paper carton, tetrapacks, protein shake container",
+          "special_instructions": "",
+          "dropoff_instructions": ""
+        },
+        {
+          "page_name": "aseptic_carton",
+          "title": "Aseptic Carton",
+          "synonyms": "soy, soup, juice, coconut, Tetra, Tetra pack, Tetra Pack, Premier Protein, orgain shake blue bottle",
+          "special_instructions": "",
+          "dropoff_instructions": ""
+        }
+      ],
+      "suggested_rules_text": ""
+    },
+    "GLASS": {
+      "checked_page_names": [
+        "glass_bottle",
+        "glass_jar"
+      ],
+      "matched": [
+        {
+          "page_name": "glass_bottle",
+          "title": "Glass Bottle",
+          "synonyms": "Clear glass, color glass, color glass, brown bottle, green bottle, clear bottle, brown jar, green jar, clear jar, brown glass bottle",
+          "special_instructions": "",
+          "dropoff_instructions": ""
+        },
+        {
+          "page_name": "glass_jar",
+          "title": "Glass Jar",
+          "synonyms": "Clear glass, color glass, color glass, brown bottle, green bottle, clear bottle, brown jar, green jar, clear jar",
+          "special_instructions": "",
+          "dropoff_instructions": ""
+        }
+      ],
+      "suggested_rules_text": ""
+    },
+    "PAPER": {
+      "checked_page_names": [
+        "paper"
+      ],
+      "matched": [
+        {
+          "page_name": "paper",
+          "title": "Paper",
+          "synonyms": "Computer paper, writing paper, notebook paper, notebook, bills, coated paper, paper folders, packing paper, glossy",
+          "special_instructions": "Computer paper, packing paper, notebook paper...it's all recyclable.",
+          "dropoff_instructions": ""
+        }
+      ],
+      "suggested_rules_text": "Computer paper, packing paper, notebook paper...it's all recyclable."
+    }
+  }
+}

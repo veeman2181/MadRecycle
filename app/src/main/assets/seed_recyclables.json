@@ -3,7 +3,7 @@
     "barcode": "041303001505",
     "itemName": "Plastic Milk Jug",
     "materialType": "PLASTIC_JUG",
-    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "rulesText": "Plastic caps and lids should be kept on their plastic bottles, jugs, and jars.",
     "minDimensionInches": null,
     "requiresFlatten": false,
     "requires3D": true
@@ -12,7 +12,7 @@
     "barcode": "999999000001",
     "itemName": "Cardboard Shipping Box",
     "materialType": "CARDBOARD",
-    "rulesText": "Madison Rule: Flatten completely before discarding.",
+    "rulesText": "",
     "minDimensionInches": null,
     "requiresFlatten": true,
     "requires3D": false
@@ -21,7 +21,7 @@
     "barcode": "041220002709",
     "itemName": "Metal Soup Can",
     "materialType": "METAL_CAN",
-    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "rulesText": "Make sure your cans are clean, empty, and dry before putting them into the recycling cart.",
     "minDimensionInches": null,
     "requiresFlatten": false,
     "requires3D": true
@@ -30,7 +30,7 @@
     "barcode": "030000317008",
     "itemName": "Oat Milk Carton",
     "materialType": "DRINK_CARTON",
-    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "rulesText": "",
     "minDimensionInches": null,
     "requiresFlatten": false,
     "requires3D": true
@@ -39,7 +39,7 @@
     "barcode": "012345678905",
     "itemName": "Small Plastic Cup",
     "materialType": "OTHER",
-    "rulesText": "Too Small for Pellitteri Systems. Discard in Trash.",
+    "rulesText": "",
     "minDimensionInches": 3.0,
     "requiresFlatten": false,
     "requires3D": false
@@ -48,7 +48,7 @@
     "barcode": "",
     "itemName": "Cardboard (fallback)",
     "materialType": "CARDBOARD",
-    "rulesText": "Madison Rule: Flatten completely before discarding.",
+    "rulesText": "",
     "minDimensionInches": null,
     "requiresFlatten": true,
     "requires3D": false
@@ -57,7 +57,7 @@
     "barcode": "",
     "itemName": "Plastic Jug/Bottle (fallback)",
     "materialType": "PLASTIC_JUG",
-    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "rulesText": "Plastic caps and lids should be kept on their plastic bottles, jugs, and jars.",
     "minDimensionInches": null,
     "requiresFlatten": false,
     "requires3D": true
@@ -66,7 +66,7 @@
     "barcode": "",
     "itemName": "Metal Can (fallback)",
     "materialType": "METAL_CAN",
-    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "rulesText": "Make sure your cans are clean, empty, and dry before putting them into the recycling cart.",
     "minDimensionInches": null,
     "requiresFlatten": false,
     "requires3D": true
@@ -75,9 +75,29 @@
     "barcode": "",
     "itemName": "Drink Carton (fallback)",
     "materialType": "DRINK_CARTON",
-    "rulesText": "Madison Rule: Keep 3D! Do not crush or flatten.",
+    "rulesText": "",
     "minDimensionInches": null,
     "requiresFlatten": false,
     "requires3D": true
+  },
+  {
+    "barcode": "",
+    "itemName": "Glass Bottle/Jar (fallback)",
+    "materialType": "GLASS",
+    "rulesText": "",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": false,
+    "isRecyclableAsIs": true
+  },
+  {
+    "barcode": "",
+    "itemName": "Paper (fallback)",
+    "materialType": "PAPER",
+    "rulesText": "Computer paper, packing paper, notebook paper...it's all recyclable.",
+    "minDimensionInches": null,
+    "requiresFlatten": false,
+    "requires3D": false,
+    "isRecyclableAsIs": true
   }
 ]

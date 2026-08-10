@@ -1,5 +1,6 @@
 package com.ecomadison.app.ui
 
+import android.content.Context
 import com.ecomadison.app.domain.model.MaterialType
 import com.ecomadison.app.domain.model.RecyclableItem
 import com.ecomadison.app.domain.model.RuleMessage
@@ -31,13 +32,15 @@ class ScannerViewModelTest {
     private val getFallbackRuleUseCase: GetFallbackRuleUseCase = mockk()
     private val resolveDisplayRuleUseCase = ResolveDisplayRuleUseCase()
     private val logScanUseCase: LogScanUseCase = mockk(relaxed = true)
+    private val context: Context = mockk(relaxed = true)
 
     private fun buildViewModel() = ScannerViewModel(
         scanPipelineCoordinator = scanPipelineCoordinator,
         getDisposalRuleUseCase = getDisposalRuleUseCase,
         getFallbackRuleUseCase = getFallbackRuleUseCase,
         resolveDisplayRuleUseCase = resolveDisplayRuleUseCase,
-        logScanUseCase = logScanUseCase
+        logScanUseCase = logScanUseCase,
+        context = context
     )
 
     private val jugItem = RecyclableItem(
@@ -48,6 +51,7 @@ class ScannerViewModelTest {
         minDimensionInches = null,
         requiresFlatten = false,
         requires3D = true,
+        isRecyclableAsIs = false,
         lastUpdatedTimestamp = 0L
     )
 
@@ -59,10 +63,22 @@ class ScannerViewModelTest {
         viewModel.onIntent(ScannerIntent.ManualMaterialSelected(MaterialType.PLASTIC_JUG))
 
         assertThat(viewModel.uiState.value.ruleMessage).isEqualTo(RuleMessage.Keep3D)
+        assertThat(viewModel.uiState.value.ruleDetail).isEqualTo("Keep 3D")
         assertThat(viewModel.uiState.value.resolvedFromTier).isEqualTo(4)
         coVerify {
             logScanUseCase(match<ScanLogEntry> { it.resolvedByTier == 4 && it.pointsAwarded == 0 })
         }
+    }
+
+    @Test
+    fun `blank rulesText surfaces no detail line rather than an empty one`() = runTest {
+        coEvery { getFallbackRuleUseCase(MaterialType.CARDBOARD) } returns flowOf(jugItem.copy(materialType = MaterialType.CARDBOARD, rulesText = "", requiresFlatten = true, requires3D = false))
+        val viewModel = buildViewModel()
+
+        viewModel.onIntent(ScannerIntent.ManualMaterialSelected(MaterialType.CARDBOARD))
+
+        assertThat(viewModel.uiState.value.ruleMessage).isEqualTo(RuleMessage.Flatten)
+        assertThat(viewModel.uiState.value.ruleDetail).isNull()
     }
 
     @Test

@@ -12,5 +12,6 @@ data class RecyclableItem(
     val minDimensionInches: Float?,
     val requiresFlatten: Boolean,
     val requires3D: Boolean,
+    val isRecyclableAsIs: Boolean,
     val lastUpdatedTimestamp: Long
 )

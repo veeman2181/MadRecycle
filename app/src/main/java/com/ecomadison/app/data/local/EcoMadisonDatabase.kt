@@ -24,7 +24,7 @@ import com.ecomadison.app.data.local.entity.ScanLogEntity
         ScanLogEntity::class,
         PointsLedgerEntity::class
     ],
-    version = 1,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

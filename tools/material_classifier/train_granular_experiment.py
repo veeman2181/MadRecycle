@@ -1,20 +1,31 @@
 """
-Fine-tunes MobileNetV2 (ImageNet transfer learning) on TrashNet + a Kaggle waste-classification
-dataset, remapped to this app's MaterialType taxonomy, and exports a quantized TFLite classifier
-+ label file straight into the Android app's assets directory.
+Experiment: how well does MobileNetV2 do at the Kaggle dataset's *native* per-product
+granularity, instead of the coarse MaterialType remap that train.py performs?
+
+This does NOT touch the shipped app model/assets. It trains a separate classifier over:
+- the 19 Kaggle folders that map to something on Madison's curbside-recyclable list, kept as
+  their own individual classes (see RECYCLABLE_FOLDERS below) -- except for two pairs merged
+  per MERGE_INTO below, based on run 1's confusion matrix
+- the remaining 11 non-recyclable Kaggle folders, collapsed into one OTHER catch-all class,
+  since the app's message for all of them is the same ("not accepted") regardless of which one
+  it is -- no reason to spend model capacity distinguishing food waste from a shoe.
+
+Run 1 (no merges) scored 82.8% overall but that average hid two structurally-unlearnable splits:
+aluminum_food_cans vs. steel_food_cans (43%/59% precision, ~85% cross-confused -- a food can's
+metal isn't a visible feature) and cardboard_boxes vs. cardboard_packaging (59%/60% precision --
+not a real product distinction, just how Kaggle's photos happened to be bucketed). Both pairs
+are merged into one label each this run; aluminum_soda_cans stays split out from food cans since
+it was already cleanly learnable (77% precision, 81% recall in run 1).
+
+TrashNet is excluded entirely: it only has coarse cardboard/glass/metal/paper/trash labels, so
+its images can't be assigned to any of the fine-grained classes without guessing.
+
+Same training recipe as train.py (two-phase transfer learning + fine-tuning, same augmentation)
+so the numbers are comparable to the 7-class run documented in README.md. Writes results to
+granular_experiment/ next to this script, not into app/src/main/assets/.
 
 Usage:
-    venv/Scripts/python.exe train.py
-
-Expects:
-- ./dataset-resized/dataset-resized/{cardboard,glass,metal,paper,plastic,trash}/*.jpg
-  (download via: curl -L -o dataset-resized.zip \
-    https://huggingface.co/datasets/garythung/trashnet/resolve/main/dataset-resized.zip
-    && unzip dataset-resized.zip -d dataset-resized)
-- ./kaggle-waste/images/images/<category>/{default,real_world}/*.png
-  (download via: kaggle datasets download -d alistairking/recyclable-and-household-waste-classification
-    && unzip recyclable-and-household-waste-classification.zip -d kaggle-waste
-    -- requires a Kaggle account + API token at ~/.kaggle/kaggle.json)
+    venv\\Scripts\\python.exe train_granular_experiment.py
 """
 import pathlib
 import random
@@ -31,80 +42,71 @@ BATCH_SIZE = 32
 EPOCHS = 15
 VAL_SPLIT = 0.2
 FINE_TUNE_EPOCHS = 10
-FINE_TUNE_UNFREEZE_LAYERS = 30  # last ~30 of MobileNetV2's 154 layers (roughly its last block)
+FINE_TUNE_UNFREEZE_LAYERS = 30
 
-TRASHNET_DIR = pathlib.Path(__file__).parent / "dataset-resized" / "dataset-resized"
 KAGGLE_DIR = pathlib.Path(__file__).parent / "kaggle-waste" / "images" / "images"
-ASSETS_DIR = pathlib.Path(__file__).parents[2] / "app" / "src" / "main" / "assets"
+OUT_DIR = pathlib.Path(__file__).parent / "granular_experiment"
 
-# TrashNet's folders -> this app's MaterialType enum (domain/model/MaterialType.kt).
-# TrashNet's "plastic" folder is deliberately NOT included: it mixes bottles/jugs/bags/misc
-# with no way to separate rigid containers from film, and the Kaggle dataset below has
-# cleanly-labeled subcategories for exactly that distinction — mixing the ambiguous TrashNet
-# folder back in would reintroduce label noise into PLASTIC_JUG/PLASTIC_FILM.
-#
-# "glass" and "paper" were folded into OTHER pre-Madison-guidelines review; both are on the
-# City of Madison's accepted curbside list (glass bottles/jars; junk mail, newspaper, office
-# paper, magazines, paper cups) so they're now their own classes instead of hiding inside the
-# non-recyclable bucket.
-TRASHNET_FOLDER_TO_MATERIAL = {
-    "cardboard": "CARDBOARD",
-    "metal": "METAL_CAN",
-    "glass": "GLASS",
-    "paper": "PAPER",
-    "trash": "OTHER",
+# Kept as individual fine-grained classes -- these are the Kaggle folders that correspond to
+# something on Madison's curbside-recyclable list (see tools/madison_guide/), grouped in
+# comments by the coarse MaterialType bucket they currently collapse into.
+RECYCLABLE_FOLDERS = {
+    # CARDBOARD
+    "cardboard_boxes",
+    "cardboard_packaging",
+    # METAL_CAN
+    "aluminum_food_cans",
+    "aluminum_soda_cans",
+    "steel_food_cans",
+    "aerosol_cans",
+    # PLASTIC_JUG
+    "plastic_water_bottles",
+    "plastic_soda_bottles",
+    "plastic_detergent_bottles",
+    "plastic_food_containers",
+    # PLASTIC_FILM
+    "plastic_shopping_bags",
+    "plastic_trash_bags",
+    # GLASS
+    "glass_beverage_bottles",
+    "glass_cosmetic_containers",
+    "glass_food_jars",
+    # PAPER
+    "magazines",
+    "newspaper",
+    "office_paper",
+    "paper_cups",
 }
 
-# Kaggle's 30 categories -> MaterialType. This is what makes PLASTIC_FILM a real trained class
-# for the first time (TrashNet had zero film examples) and gives PLASTIC_JUG dedicated
-# bottle/container images instead of TrashNet's mixed "plastic" bucket. Small rigid plastic
-# items that are neither jug-shaped nor film (straws, cutlery, cup lids) fall to OTHER rather
-# than distorting either class's visual identity — same for anything genuinely not on Madison's
-# curbside-accepted list (styrofoam, food waste, clothing, etc.), which OTHER also has to cover.
-KAGGLE_FOLDER_TO_MATERIAL = {
-    "cardboard_boxes": "CARDBOARD",
-    "cardboard_packaging": "CARDBOARD",
-    "aluminum_food_cans": "METAL_CAN",
-    "aluminum_soda_cans": "METAL_CAN",
-    "steel_food_cans": "METAL_CAN",
-    "aerosol_cans": "METAL_CAN",
-    "plastic_water_bottles": "PLASTIC_JUG",
-    "plastic_soda_bottles": "PLASTIC_JUG",
-    "plastic_detergent_bottles": "PLASTIC_JUG",
-    "plastic_food_containers": "PLASTIC_JUG",
-    "plastic_shopping_bags": "PLASTIC_FILM",
-    "plastic_trash_bags": "PLASTIC_FILM",
-    "glass_beverage_bottles": "GLASS",
-    "glass_cosmetic_containers": "GLASS",
-    "glass_food_jars": "GLASS",
-    "magazines": "PAPER",
-    "newspaper": "PAPER",
-    "office_paper": "PAPER",
-    "paper_cups": "PAPER",
-    "clothing": "OTHER",
-    "coffee_grounds": "OTHER",
-    "eggshells": "OTHER",
-    "food_waste": "OTHER",
-    "shoes": "OTHER",
-    "styrofoam_cups": "OTHER",
-    "styrofoam_food_containers": "OTHER",
-    "tea_bags": "OTHER",
-    "plastic_straws": "OTHER",
-    "plastic_cup_lids": "OTHER",
-    "disposable_plastic_cutlery": "OTHER",
+# Collapsed into one negative class -- not on Madison's curbside list, so the app's message is
+# identical ("not accepted") no matter which of these it is.
+OTHER_LABEL = "OTHER"
+
+# Pairs whose split run 1 showed is either unlearnable from a photo alone (food can metal) or not
+# a real product distinction (cardboard sub-type) -- merged into one label per pair this run.
+MERGE_INTO = {
+    "aluminum_food_cans": "food_can",
+    "steel_food_cans": "food_can",
+    "cardboard_boxes": "cardboard",
+    "cardboard_packaging": "cardboard",
 }
+
+
+def folder_to_label(folder_name):
+    if folder_name not in RECYCLABLE_FOLDERS:
+        return OTHER_LABEL
+    return MERGE_INTO.get(folder_name, folder_name)
 
 
 def build_file_label_lists():
     paths, labels = [], []
-    for folder, material in TRASHNET_FOLDER_TO_MATERIAL.items():
-        for f in sorted((TRASHNET_DIR / folder).glob("*.jpg")):
+    for folder_dir in sorted(KAGGLE_DIR.iterdir()):
+        if not folder_dir.is_dir():
+            continue
+        label = folder_to_label(folder_dir.name)
+        for f in sorted(folder_dir.glob("**/*.png")):
             paths.append(str(f))
-            labels.append(material)
-    for folder, material in KAGGLE_FOLDER_TO_MATERIAL.items():
-        for f in sorted((KAGGLE_DIR / folder).glob("**/*.png")):
-            paths.append(str(f))
-            labels.append(material)
+            labels.append(label)
     return paths, labels
 
 
@@ -132,31 +134,19 @@ def make_dataset(paths, label_indices, training):
 
     def load_image(path):
         raw = tf.io.read_file(path)
-        # TrashNet is JPEG, the Kaggle dataset is PNG — decode_image handles both uniformly.
         img = tf.io.decode_image(raw, channels=3, expand_animations=False)
         img.set_shape([None, None, 3])
         if training:
-            # TrashNet is clean studio photography (centered object, plain background) — a
-            # real basement scan won't be framed that tightly. Resize larger than the model
-            # input then randomly crop back down to approximate variable framing/distance,
-            # on top of flip/brightness/contrast, so the model sees more than one exact crop
-            # of each of the ~2000 training images.
             img = tf.image.resize(img, [int(IMG_SIZE * 1.2), int(IMG_SIZE * 1.2)])
             img = tf.image.random_crop(img, [IMG_SIZE, IMG_SIZE, 3])
             img = tf.image.random_flip_left_right(img)
             img = tf.image.random_brightness(img, max_delta=0.15)
             img = tf.image.random_contrast(img, lower=0.85, upper=1.15)
-            # Both source datasets' CARDBOARD photos are almost entirely natural brown/tan
-            # corrugated stock, so without hue/saturation jitter the model can shortcut on
-            # "brown" instead of learning cardboard's actual texture/flute pattern — it then
-            # misses real-world dark/black/dyed cardboard (e.g. chipboard backing) entirely.
             img = tf.image.random_hue(img, max_delta=0.08)
             img = tf.image.random_saturation(img, lower=0.6, upper=1.4)
             img = tf.clip_by_value(img, 0.0, 255.0)
         else:
             img = tf.image.resize(img, [IMG_SIZE, IMG_SIZE])
-        # Bake MobileNetV2's own preprocessing (scale to [-1, 1]) into the pipeline so the
-        # exported graph and Kotlin's TensorImage normalization agree on the same input contract.
         img = tf.keras.applications.mobilenet_v2.preprocess_input(img)
         return img
 
@@ -201,9 +191,10 @@ def evaluate(model, val_ds, val_indices, class_names, phase_label):
 
 def main():
     paths, labels = build_file_label_lists()
-    class_names = sorted(set(labels))  # deterministic label<->index order
+    class_names = sorted(set(labels))
     label_to_index = {c: i for i, c in enumerate(class_names)}
     print(f"Classes (index order): {class_names}")
+    print(f"Total classes: {len(class_names)}")
     print(f"Total images: {len(paths)}")
     for c in class_names:
         print(f"  {c}: {labels.count(c)}")
@@ -228,10 +219,6 @@ def main():
     )
     base_model.trainable = False
 
-    # Extend base_model's own input/output tensors directly (rather than calling base_model(...)
-    # as a nested layer) so the exported graph is flat. TF 2.16/Keras 3's TFLite converter has a
-    # known MLIR bug ("missing attribute 'value'" on MobileNetV2's Conv1 ReadVariableOp) when
-    # converting a functional model that wraps another Model as a nested sub-model.
     x = base_model.output
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dropout(0.2)(x)
@@ -259,10 +246,6 @@ def main():
     phase1_acc = evaluate(model, val_ds, val_indices, class_names, "Phase 1: frozen backbone")
     phase1_weights = model.get_weights()
 
-    # Phase 2: unfreeze the top of MobileNetV2 and fine-tune at a much lower LR so the
-    # backbone's own features adapt to this dataset instead of only the classifier head.
-    # BatchNorm layers stay frozen throughout — letting their running statistics drift on
-    # ~2000 training images is a well-known way to destabilize fine-tuning on a small dataset.
     base_model.trainable = True
     for layer in base_model.layers[:-FINE_TUNE_UNFREEZE_LAYERS]:
         layer.trainable = False
@@ -288,25 +271,19 @@ def main():
 
     phase2_acc = evaluate(model, val_ds, val_indices, class_names, "Phase 2: fine-tuned top layers")
 
-    # Fine-tuning a large backbone on ~2000 images can overfit and regress val accuracy —
-    # export whichever phase actually measured better rather than assuming the later phase won.
     if phase2_acc >= phase1_acc:
         print(f"\nExporting Phase 2 model ({phase2_acc:.4f} >= {phase1_acc:.4f})")
     else:
-        print(f"\nPhase 2 regressed ({phase2_acc:.4f} < {phase1_acc:.4f}) — exporting Phase 1 model instead")
+        print(f"\nPhase 2 regressed ({phase2_acc:.4f} < {phase1_acc:.4f}) -- exporting Phase 1 model instead")
         model.set_weights(phase1_weights)
 
-    # Augmentation lived only in the tf.data pipeline (never in the model graph), and
-    # preprocess_input is already baked into that same pipeline for train *and* val, so
-    # `model` itself expects a [-1, 1]-normalized 224x224x3 tensor — exactly what Kotlin's
-    # TensorImage/ImageProcessor will produce. No second model or weight-copy needed.
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     tflite_model = converter.convert()
 
-    ASSETS_DIR.mkdir(parents=True, exist_ok=True)
-    tflite_path = ASSETS_DIR / "material_classifier_v1.tflite"
-    labels_path = ASSETS_DIR / "material_classifier_labels.txt"
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    tflite_path = OUT_DIR / "granular_experiment_v1.tflite"
+    labels_path = OUT_DIR / "granular_experiment_labels.txt"
     tflite_path.write_bytes(tflite_model)
     labels_path.write_text("\n".join(class_names) + "\n")
 

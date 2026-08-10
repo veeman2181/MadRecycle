@@ -7,5 +7,7 @@ enum class MaterialType {
     METAL_CAN,
     DRINK_CARTON,
     PLASTIC_FILM,
+    GLASS,
+    PAPER,
     OTHER
 }

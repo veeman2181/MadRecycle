@@ -30,6 +30,7 @@ class RulesRepositoryImplTest {
         minDimensionInches = null,
         requiresFlatten = false,
         requires3D = true,
+        isRecyclableAsIs = false,
         lastUpdatedTimestamp = 1_000L
     )
 
