@@ -47,7 +47,19 @@ jobs:
           echo "$PAYLOAD" | base64 -d | jq .
 
       - name: Verify role ARN secret (temporary, hash only, never the value)
-        run: echo -n "${{ secrets.VISION_PROXY_DEPLOY_ROLE_ARN }}" | sha256sum
+        run: |
+          echo -n "${{ secrets.VISION_PROXY_DEPLOY_ROLE_ARN }}" | sha256sum
+          echo -n "${{ secrets.VISION_PROXY_AWS_REGION }}" | sha256sum
+
+      - name: Raw STS call for full error detail (temporary)
+        run: |
+          IDTOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          aws sts assume-role-with-web-identity \
+            --role-arn "${{ secrets.VISION_PROXY_DEPLOY_ROLE_ARN }}" \
+            --role-session-name debug-session \
+            --web-identity-token "$IDTOKEN" \
+            --region "${{ secrets.VISION_PROXY_AWS_REGION }}" 2>&1 || true
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
