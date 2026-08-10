@@ -61,6 +61,16 @@ jobs:
             --web-identity-token "$IDTOKEN" \
             --region "${{ secrets.VISION_PROXY_AWS_REGION }}" 2>&1 || true
 
+      - name: Raw STS call against isolated test role (temporary)
+        run: |
+          IDTOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          aws sts assume-role-with-web-identity \
+            --role-arn "arn:aws:iam::850799964167:role/ecomadison-vision-proxy-deploy-oidctest" \
+            --role-session-name debug-session \
+            --web-identity-token "$IDTOKEN" \
+            --region us-east-1 2>&1 || true
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
