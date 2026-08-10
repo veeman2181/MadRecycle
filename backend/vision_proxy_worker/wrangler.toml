@@ -1,6 +1,10 @@
 name = "ecomadison-vision-proxy"
 main = "src/index.js"
 compatibility_date = "2026-08-01"
+# Pins the deploy target so `wrangler deploy` never calls the Cloudflare
+# /memberships endpoint to auto-detect an account -- that lookup needs
+# broader token permissions than a scoped CI deploy token should carry.
+account_id = "429f1dbd165fd3dcf741aebc3b7e610c"
 
 # Secrets (never stored here -- set via `wrangler secret put <NAME>` or the
 # GitHub Actions deploy workflow's use of the same):
